@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat en Temps Réel</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      padding: 20px;
+    }
+    #chatContainer {
+      margin-bottom: 20px;
+      max-height: 400px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      padding: 10px;
+      background-color: #fff;
+      margin-bottom: 20px;
+    }
+    #messageInput {
+      padding: 10px;
+      width: 80%;
+    }
+    #sendMessageBtn {
+      padding: 10px;
+    }
+    .message {
+      padding: 8px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      background-color: #e2e2e2;
+      max-width: 80%;
+    }
+    .message.user {
+      background-color: #c2f0c2;
+      text-align: right;
+    }
+    .timestamp {
+      font-size: 0.8em;
+      color: #777;
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Chat en Temps Réel</h2>
+
+  <div id="chatContainer"></div>
+
+  <input type="text" id="messageInput" placeholder="Écris un message..." />
+  <button id="sendMessageBtn">Envoyer</button>
+
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
+  <script src="chat.js"></script>
+
+  <script>
+    // Importer les modules nécessaires de Firebase v9
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+
+    // Configuration Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyB5q89tynS7J74xa6W8zbwZflpU98uxRag",
+      authDomain: "reparations-d4b81.firebaseapp.com",
+      databaseURL: "https://reparations-d4b81-default-rtdb.firebaseio.com",
+      projectId: "reparations-d4b81",
+      storageBucket: "reparations-d4b81.firebasestorage.app",
+      messagingSenderId: "445121565052",
+      appId: "1:445121565052:web:4d549a853bddba200d14f9"
+    };
+
+    // Initialiser Firebase
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+
+    // Sélection des éléments du DOM
+    const messageInput = document.getElementById('messageInput');
+    const sendMessageBtn = document.getElementById('sendMessageBtn');
+    const chatContainer = document.getElementById('chatContainer');
+
+    // Fonction pour envoyer un message
+    sendMessageBtn.addEventListener('click', () => {
+      const message = messageInput.value.trim();
+
+      if (message) {
+        const messagesRef = ref(database, 'messages');
+        const newMessageRef = push(messagesRef);
+        newMessageRef.set({
+          text: message,
+          timestamp: new Date().toLocaleTimeString() // Horodatage du message
+        });
+        messageInput.value = ''; // Réinitialiser l'input
+      }
+    });
+
+    // Afficher les messages en temps réel
+    const messagesRef = ref(database, 'messages');
+    onChildAdded(messagesRef, (snapshot) => {
+      const message = snapshot.val();
+      const messageElement = document.createElement('div');
+      messageElement.classList.add('message');
+
+      // Ajouter l'horodatage et le texte du message
+      const timestampElement = document.createElement('div');
+      timestampElement.classList.add('timestamp');
+      timestampElement.textContent = message.timestamp;
+
+      messageElement.textContent = message.text;
+      messageElement.appendChild(timestampElement);
+      chatContainer.appendChild(messageElement);
+
+      chatContainer.scrollTop = chatContainer.scrollHeight; // Faire défiler vers le bas
+    });
+  </script>
+
+</body>
+</html>
